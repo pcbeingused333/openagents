@@ -42,7 +42,7 @@ function parseAgyEvent(line) {
 }
 
 /** One-line preview of a tool call's parameters for the status ticker. */
-function toolPreview(parameters) {
+function toolPreview(parameters, redact = (text) => text) {
   if (!parameters || typeof parameters !== 'object') return '';
   // agy uses PascalCase parameter names (e.g. CommandLine); check both.
   const pick = (...names) => {
@@ -56,7 +56,7 @@ function toolPreview(parameters) {
     pick('CommandLine', 'command') ||
     pick('AbsolutePath', 'file_path', 'path') ||
     pick('Query', 'query', 'pattern') ||
-    JSON.stringify(parameters).slice(0, 150)
+    redact(JSON.stringify(parameters)).slice(0, 150)
   );
 }
 
@@ -75,7 +75,8 @@ function toolPreview(parameters) {
  * tool use" semantics for streams that die before their result event.
  */
 class AgyRunState {
-  constructor() {
+  constructor(options) {
+    this._redactPreview = options?.redact || ((text) => text);
     this.conversationId = null;
     this.status = null;
     this.error = null;
@@ -117,7 +118,7 @@ class AgyRunState {
           this._toolSteps.add(key);
           const info = step.tool_info || {};
           const name = info.name || step.tool_name || 'tool';
-          actions.push({ type: 'tool', name, preview: toolPreview(info.parameters) });
+          actions.push({ type: 'tool', name, preview: toolPreview(info.parameters, this._redactPreview) });
           // A tool ran: any text before it was narration, not the answer.
           this._blocks = [];
         }

@@ -749,7 +749,7 @@ class OpenWorkerAdapter extends BaseAdapter {
               workingDir,
               allowToolInstall: String(this.agentEnv.OPENWORKER_ALLOW_TOOL_INSTALL || '') === '1',
             });
-            const summary = promptSummary(ev);
+            const summary = promptSummary(ev, (text) => this._redact(text));
             // Say what was decided on the user's behalf. A question in particular
             // is information they would otherwise never see.
             if (summary) void this.sendStatus(channel, summary).catch(() => {});

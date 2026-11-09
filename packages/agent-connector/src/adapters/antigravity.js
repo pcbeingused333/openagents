@@ -250,7 +250,7 @@ class AntigravityAdapter extends BaseAdapter {
         });
         this._channelProcesses[msgChannel] = proc;
 
-        const run = new AgyRunState();
+        const run = new AgyRunState({ redact: (text) => this._redact(text) });
         let stderrBuf = '';
         let lineBuffer = '';
         let _pendingLines = Promise.resolve();

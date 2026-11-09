@@ -410,7 +410,7 @@ class GeminiAdapter extends BaseAdapter {
                 else if (inp.file_path || inp.path) inputPreview = inp.file_path || inp.path;
                 else if (inp.pattern) inputPreview = inp.pattern;
                 else if (inp.query) inputPreview = inp.query;
-                else inputPreview = JSON.stringify(inp).slice(0, 150);
+                else inputPreview = this._redact(JSON.stringify(inp)).slice(0, 150);
               }
               await this.sendStatus(msgChannel, `${toolName} › ${inputPreview}`);
             } else if (eventType === 'error') {

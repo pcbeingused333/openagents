@@ -310,7 +310,7 @@ function _str(v) {
  * @param {*} args
  * @returns {string}
  */
-function summarizeToolArgs(toolName, args) {
+function summarizeToolArgs(toolName, args, redact = (text) => text) {
   if (!args || typeof args !== 'object') return '';
   const PREFERRED = [
     'command', 'file_path', 'path', 'filePath', 'file',
@@ -326,13 +326,13 @@ function summarizeToolArgs(toolName, args) {
     if (!keys.length) return '';
     preview = keys.slice(0, 6).join(', ');
   }
-  preview = redactSecrets(preview).replace(/\s+/g, ' ').trim();
+  preview = redactSecrets(redact(preview)).replace(/\s+/g, ' ').trim();
   if (preview.length > TOOL_PREVIEW_LIMIT) preview = preview.slice(0, TOOL_PREVIEW_LIMIT) + '…';
   return preview;
 }
 
 /** Condense a tool result's content blocks into a short redacted preview. */
-function summarizeToolResult(result) {
+function summarizeToolResult(result, redact = (text) => text) {
   if (!result || typeof result !== 'object') return '';
   const content = Array.isArray(result.content) ? result.content : [];
   const text = content
@@ -340,7 +340,7 @@ function summarizeToolResult(result) {
     .join(' ')
     .trim();
   if (!text) return '';
-  const preview = redactSecrets(text).replace(/\s+/g, ' ').trim();
+  const preview = redactSecrets(redact(text)).replace(/\s+/g, ' ').trim();
   return preview.length > TOOL_PREVIEW_LIMIT ? preview.slice(0, TOOL_PREVIEW_LIMIT) + '…' : preview;
 }
 
@@ -350,7 +350,7 @@ function summarizeToolResult(result) {
  * @param {object} obj
  * @returns {{kind: string} & object}
  */
-function classifyPiEvent(obj) {
+function classifyPiEvent(obj, redact = (text) => text) {
   if (!obj || typeof obj !== 'object') return { kind: 'unknown', raw: diagnosticFor(obj) };
   const type = _str(obj.type);
   const kind = type ? EVENT_KIND_BY_TYPE[type] : undefined;
@@ -398,7 +398,7 @@ function classifyPiEvent(obj) {
         kind: 'tool_start',
         toolCallId: _str(obj.toolCallId) || null,
         toolName,
-        preview: summarizeToolArgs(toolName, obj.args),
+        preview: summarizeToolArgs(toolName, obj.args, redact),
       };
     }
     case 'tool_update':
@@ -414,7 +414,7 @@ function classifyPiEvent(obj) {
         toolCallId: _str(obj.toolCallId) || null,
         toolName,
         isError: obj.isError === true,
-        preview: summarizeToolResult(obj.result),
+        preview: summarizeToolResult(obj.result, redact),
       };
     }
     case 'bash_output':
@@ -480,7 +480,8 @@ function classifyPiEvent(obj) {
  * framer + classifier so the adapter never touches either directly.
  */
 class PiStreamParser {
-  constructor(opts) {
+  constructor(opts = {}) {
+    this._redactPreview = opts.redact;
     this._framer = new PiJsonlFramer(opts);
   }
 
@@ -505,7 +506,7 @@ class PiStreamParser {
         if (String(line).trim()) events.push({ kind: 'unknown', raw: diagnosticFor(line) });
         continue;
       }
-      events.push(classifyPiEvent(obj));
+      events.push(classifyPiEvent(obj, this._redactPreview));
     }
     if (this._framer.dropped > before) {
       this._reportedDrops = this._framer.dropped;

@@ -387,7 +387,7 @@ function promptReply(event, { planMode = false, workingDir = '', allowToolInstal
 }
 
 /** A one-line description of a prompt, for the channel's status ticker. */
-function promptSummary(event) {
+function promptSummary(event, redact = (text) => text) {
   if (!event || event.kind !== 'prompt') return '';
   const d = event.data || {};
   switch (event.prompt) {
@@ -400,7 +400,7 @@ function promptSummary(event) {
     case 'plan':
       return 'proposed a plan';
     case 'question':
-      return `asked: ${truncate(str(d.question) || str(d.header), 200)}`;
+      return `asked: ${truncate(redact(str(d.question) || str(d.header)), 200)}`;
     case 'team':
       return 'proposed a team of sub-agents';
     case 'items':

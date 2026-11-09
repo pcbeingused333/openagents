@@ -533,15 +533,15 @@ class OpenCodeAdapter extends BaseAdapter {
     return OpenCodeAdapter._safeToolName(item.name || item.tool || item.toolName || item.id || 'tool');
   }
 
-  static _toolStatusFromEvent(event) {
+  static _toolStatusFromEvent(event, redact = (text) => text) {
     if (!OpenCodeAdapter._isToolEvent(event)) return null;
 
     const item = event.item || event.part || event.tool || event;
     const toolName = OpenCodeAdapter._safeToolName(
-      item.name || item.tool || item.toolName || item.id || 'tool'
+      redact(item.name || item.tool || item.toolName || item.id || 'tool')
     );
     const input = OpenCodeAdapter._toolInputFromItem(item);
-    const preview = OpenCodeAdapter._toolInputPreview(input);
+    const preview = OpenCodeAdapter._toolInputPreview(input, redact);
 
     return OpenCodeAdapter._formatToolStatus(toolName, preview);
   }
@@ -558,13 +558,13 @@ class OpenCodeAdapter extends BaseAdapter {
     return item.input || item.args || item.arguments || item.parameters || item.params || {};
   }
 
-  static _toolInputPreview(input) {
+  static _toolInputPreview(input, redact = (text) => text) {
     if (input == null) return '';
-    if (typeof input === 'string') return input.slice(0, 1000);
+    if (typeof input === 'string') return redact(input).slice(0, 1000);
     try {
-      return JSON.stringify(input, null, 2).slice(0, 1000);
+      return redact(JSON.stringify(input, null, 2)).slice(0, 1000);
     } catch {
-      return String(input).slice(0, 1000);
+      return redact(String(input)).slice(0, 1000);
     }
   }
 
@@ -590,7 +590,7 @@ class OpenCodeAdapter extends BaseAdapter {
       return;
     }
 
-    const status = OpenCodeAdapter._toolStatusFromEvent(event);
+    const status = OpenCodeAdapter._toolStatusFromEvent(event, (text) => this._redact(text));
     if (status) {
       // A tool call resets `finalText` (the "text since the last tool"), so the
       // final answer is the text emitted AFTER the last tool. `allText` stays

@@ -148,7 +148,7 @@ function contentText(content) {
 const PREVIEW_KEYS = ['command', 'path', 'file_path', 'pattern', 'url', 'query', 'prompt', 'description'];
 
 /** A short, redacted human preview for a tool call's JSON arguments. */
-function toolPreview(argsJson) {
+function toolPreview(argsJson, redact = (text) => text) {
   let args;
   try {
     args = JSON.parse(argsJson);
@@ -159,7 +159,7 @@ function toolPreview(argsJson) {
   for (const key of PREVIEW_KEYS) {
     const v = args[key];
     if (typeof v === 'string' && v.trim()) {
-      const one = redactSecrets(v.replace(/\s+/g, ' ').trim());
+      const one = redactSecrets(redact(v).replace(/\s+/g, ' ').trim());
       return one.length > 80 ? one.slice(0, 80) + '…' : one;
     }
   }
@@ -175,7 +175,7 @@ function toolPreview(argsJson) {
  *   {kind:'retrying', attempt, maxAttempts, message}  provider retry
  *   {kind:'version', version}                 stream preamble
  */
-function interpretKimiMessage(msg) {
+function interpretKimiMessage(msg, redact = (text) => text) {
   if (!msg || typeof msg !== 'object') return [];
   const events = [];
 
@@ -186,7 +186,7 @@ function interpretKimiMessage(msg) {
       for (const tc of msg.tool_calls) {
         const fn = tc && typeof tc === 'object' ? tc.function : null;
         const name = fn && typeof fn.name === 'string' ? fn.name : 'tool';
-        events.push({ kind: 'tool_start', name, preview: toolPreview(fn && fn.arguments) });
+        events.push({ kind: 'tool_start', name, preview: toolPreview(fn && fn.arguments, redact) });
       }
     }
     return events;

@@ -619,7 +619,7 @@ class CopilotAdapter extends BaseAdapter {
             sawToolSinceText = true;
             try {
               const ec = (ev.exitCode != null) ? ` (exit ${ev.exitCode})` : '';
-              await this.sendStatus(channel, `**Running:** \`${redactSensitive(String(ev.command)).slice(0, 200)}\`${ec}`);
+              await this.sendStatus(channel, `**Running:** \`${redactSensitive(this._redact(String(ev.command))).slice(0, 200)}\`${ec}`);
             } catch {}
             break;
           case 'file_change':
@@ -632,7 +632,7 @@ class CopilotAdapter extends BaseAdapter {
             this._log(`tool_result ${ev.tool}${ev.isError ? ' (error)' : ''}`);
             break;
           case 'permission':
-            try { await this.sendStatus(channel, `Permission ${ev.granted ? 'granted' : 'denied'}: ${redactSensitive(ev.detail).slice(0, 160)}`); } catch {}
+            try { await this.sendStatus(channel, `Permission ${ev.granted ? 'granted' : 'denied'}: ${redactSensitive(this._redact(ev.detail)).slice(0, 160)}`); } catch {}
             break;
           case 'ask_user':
             // We launched with --no-ask-user; if a prompt still surfaces, the
@@ -707,10 +707,10 @@ class CopilotAdapter extends BaseAdapter {
     const inp = ev.input;
     if (inp && typeof inp === 'object') {
       preview = inp.command || inp.path || inp.file || inp.file_path || inp.pattern
-        || inp.query || inp.url || (typeof inp.content === 'string' ? inp.content.slice(0, 80) : '')
-        || JSON.stringify(inp).slice(0, 120);
+        || inp.query || inp.url || (typeof inp.content === 'string' ? this._redact(inp.content).slice(0, 80) : '')
+        || this._redact(JSON.stringify(inp)).slice(0, 120);
     } else if (inp != null) {
-      preview = String(inp).slice(0, 120);
+      preview = this._redact(String(inp)).slice(0, 120);
     }
     return `${ev.tool} › ${redactSensitive(String(preview))}`;
   }

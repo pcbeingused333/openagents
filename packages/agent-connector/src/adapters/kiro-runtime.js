@@ -182,7 +182,7 @@ function interpretUpdate(params, secrets = []) {
     case 'agent_thought_chunk':
       return { kind: 'thought', text: contentText(update.content) };
     case 'tool_call': {
-      const label = redactSecrets(truncate(toolLabel(update, meta), 160), secrets);
+      const label = truncate(redactSecrets(toolLabel(update, meta), secrets), 160);
       return {
         kind: 'tool_start',
         id: update.toolCallId || null,

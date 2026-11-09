@@ -436,9 +436,9 @@ function friendlyToolLabel(toolName) {
 }
 
 /** Best-effort one-line preview of a tool's input, with secrets scrubbed. */
-function toolInputPreview(input) {
+function toolInputPreview(input, redact = (text) => text) {
   if (input == null) return '';
-  if (typeof input === 'string') return truncate(redactSecrets(input), 160);
+  if (typeof input === 'string') return truncate(redactSecrets(redact(input)), 160);
   if (typeof input !== 'object') return truncate(String(input), 160);
   const i = input;
   let v =
@@ -453,7 +453,7 @@ function toolInputPreview(input) {
   if (!v) {
     try { v = JSON.stringify(redactValue(i)); } catch { v = ''; }
   }
-  return truncate(redactSecrets(String(v)), 160);
+  return truncate(redactSecrets(redact(String(v))), 160);
 }
 
 /**
@@ -474,7 +474,7 @@ function toolInputPreview(input) {
  *   {kind:'aborted', reason, text}           run_aborted
  *   {kind:'session', taskId, agentId}        hook_event agent_start (informational)
  */
-function interpretClineEnvelope(env) {
+function interpretClineEnvelope(env, redact = (text) => text) {
   if (!env || typeof env !== 'object') return [];
   const type = env.type;
 
@@ -544,7 +544,7 @@ function interpretClineEnvelope(env) {
         toolName,
         toolCallId: ev.toolCallId || null,
         label: friendlyToolLabel(toolName),
-        preview: toolInputPreview(ev.input),
+        preview: toolInputPreview(ev.input, redact),
         input: ev.input,
       }];
     }

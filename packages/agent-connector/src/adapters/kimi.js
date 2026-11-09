@@ -867,7 +867,7 @@ class KimiAdapter extends LlmDirectAdapter {
       };
 
       const handleMessage = async (m) => {
-        for (const e of interpretKimiMessage(m)) {
+        for (const e of interpretKimiMessage(m, (text) => this._redact(text))) {
           switch (e.kind) {
             case 'text':
               // Held back until the turn moves on: the LAST text is the reply,

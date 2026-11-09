@@ -264,7 +264,7 @@ const TOOL_STATES = {
  *
  * @returns {{kind: string, [k: string]: any}}
  */
-function interpretCommandCodeFrame(frame) {
+function interpretCommandCodeFrame(frame, redact = (text) => text) {
   if (!frame || typeof frame !== 'object') return { kind: 'ignored' };
 
   if (frame.type === 'result') {
@@ -295,7 +295,7 @@ function interpretCommandCodeFrame(frame) {
       toolCallId: typeof ev.toolCallId === 'string' ? ev.toolCallId : null,
       toolName: typeof ev.toolName === 'string' ? ev.toolName : '',
       label: friendlyToolLabel(ev.toolName),
-      description: ev.description ? truncate(redactSecrets(String(ev.description)), 160) : '',
+      description: ev.description ? truncate(redactSecrets(redact(String(ev.description))), 160) : '',
     };
   }
 

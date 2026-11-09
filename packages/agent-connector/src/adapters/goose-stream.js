@@ -105,7 +105,8 @@ function classifyGooseError(text) {
 }
 
 class GooseStreamParser {
-  constructor() {
+  constructor(options) {
+    this._redactPreview = options?.redact || ((text) => text);
     this._buf = '';
     this._pendingFinal = null;
     this._finalText = null;
@@ -211,7 +212,7 @@ class GooseStreamParser {
       } else if (itype === 'thinking') {
         if (item.thinking) events.push({ kind: 'thinking', text: String(item.thinking) });
       } else if (itype === 'toolRequest') {
-        events.push(GooseStreamParser._toolEvent(item));
+        events.push(GooseStreamParser._toolEvent(item, this._redactPreview));
       } else if (itype === 'toolResponse') {
         events.push(GooseStreamParser._toolResultEvent(item));
       }
@@ -229,7 +230,7 @@ class GooseStreamParser {
     }
   }
 
-  static _toolEvent(item) {
+  static _toolEvent(item, redact = (text) => text) {
     const toolCall = item.toolCall;
     if (!toolCall || typeof toolCall !== 'object') {
       return { kind: 'tool', name: 'tool', summary: '' };
@@ -242,7 +243,7 @@ class GooseStreamParser {
       return { kind: 'tool', name: 'tool', summary: '' };
     }
     const name = String(value.name || 'tool');
-    return { kind: 'tool', name, summary: GooseStreamParser._summarizeArgs(name, value.arguments) };
+    return { kind: 'tool', name, summary: GooseStreamParser._summarizeArgs(name, value.arguments, redact) };
   }
 
   static _toolResultEvent(item) {
@@ -251,12 +252,12 @@ class GooseStreamParser {
     return { kind: 'tool_result', ok };
   }
 
-  static _summarizeArgs(_name, args) {
+  static _summarizeArgs(_name, args, redact = (text) => text) {
     if (!args || typeof args !== 'object') return '';
     for (const key of ['command', 'path', 'file_path', 'file', 'pattern', 'query', 'uri', 'url']) {
       const val = args[key];
       if (typeof val === 'string' && val) {
-        let preview = val.split(/\s+/).join(' ');
+        let preview = redact(val).split(/\s+/).join(' ');
         if (preview.length > TOOL_PREVIEW_LIMIT) preview = preview.slice(0, TOOL_PREVIEW_LIMIT) + '…';
         return preview;
       }

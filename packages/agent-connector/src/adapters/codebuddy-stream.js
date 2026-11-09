@@ -292,15 +292,15 @@ function parseFrame(line) {
  * activity ticker. Mirrors the field order the Claude adapter uses, because
  * CodeBuddy's tool inputs are shaped the same way.
  */
-function toolInputPreview(input) {
+function toolInputPreview(input, redact = (text) => text) {
   if (input == null) return '';
-  if (typeof input !== 'object') return truncate(redactSecrets(String(input)), 150);
+  if (typeof input !== 'object') return truncate(redactSecrets(redact(String(input))), 150);
   const first = input.command || input.file_path || input.path || input.pattern
     || input.query || input.url || input.prompt;
-  if (typeof first === 'string' && first) return truncate(redactSecrets(first), 150);
-  if (typeof input.content === 'string') return truncate(redactSecrets(input.content), 100);
+  if (typeof first === 'string' && first) return truncate(redactSecrets(redact(first)), 150);
+  if (typeof input.content === 'string') return truncate(redactSecrets(redact(input.content)), 100);
   try {
-    return truncate(redactSecrets(JSON.stringify(input)), 150);
+    return truncate(redactSecrets(redact(JSON.stringify(input))), 150);
   } catch {
     return '';
   }
@@ -321,7 +321,7 @@ const IGNORED_FRAMES = new Set([
  *
  * @returns {{kind: string, [k: string]: any}}
  */
-function interpretCodeBuddyFrame(frame) {
+function interpretCodeBuddyFrame(frame, redact = (text) => text) {
   if (!frame || typeof frame !== 'object') return { kind: 'ignored' };
 
   if (frame.type === 'result') {
@@ -378,7 +378,7 @@ function interpretCodeBuddyFrame(frame) {
       } else if (block.type === 'tool_use') {
         tools.push({
           name: typeof block.name === 'string' ? block.name : '',
-          preview: toolInputPreview(block.input),
+          preview: toolInputPreview(block.input, redact),
           todos: block.input && Array.isArray(block.input.todos) ? block.input.todos : null,
         });
       }

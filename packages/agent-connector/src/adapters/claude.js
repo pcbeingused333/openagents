@@ -954,10 +954,10 @@ class ClaudeAdapter extends BaseAdapter {
               else if (inp.pattern) inputPreview = inp.pattern;
               else if (inp.query) inputPreview = inp.query;
               else if (inp.url) inputPreview = inp.url;
-              else if (inp.content) inputPreview = inp.content.slice(0, 100);
-              else inputPreview = JSON.stringify(inp).slice(0, 150);
+              else if (inp.content) inputPreview = this._redact(inp.content).slice(0, 100);
+              else inputPreview = this._redact(JSON.stringify(inp)).slice(0, 150);
             } else {
-              inputPreview = String(block.input || '').slice(0, 150);
+              inputPreview = this._redact(String(block.input || '')).slice(0, 150);
             }
             await this.sendStatus(pp.msgChannel, `${toolName} › ${inputPreview}`);
             pp.everPostedAnything = true;

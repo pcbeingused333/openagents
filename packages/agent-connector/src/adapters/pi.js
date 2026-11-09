@@ -842,7 +842,7 @@ class PiAdapter extends BaseAdapter {
 
     const pp = {
       proc,
-      parser: new PiStreamParser(),
+      parser: new PiStreamParser({ redact: (text) => this._redact(text) }),
       pending: new Map(),        // rpc id → { resolve, reject, timer, command }
       queue: Promise.resolve(),  // serializes async event handling
       turn: null,                // { promise, resolve } for the in-flight prompt

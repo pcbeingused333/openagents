@@ -570,7 +570,7 @@ class AiderAdapter extends BaseAdapter {
         const stripped = raw.replace(ANSI_RE, '').trim();
         if (stripped && statusCount < MAX_STATUS_UPDATES && PROGRESS_RE.test(stripped)) {
           statusCount += 1;
-          try { await this.sendStatus(msgChannel, stripped.slice(0, 300)); } catch {}
+          try { await this.sendStatus(msgChannel, this._redact(stripped).slice(0, 300)); } catch {}
         }
       };
 

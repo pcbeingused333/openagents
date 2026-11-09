@@ -467,7 +467,7 @@ class GooseAdapter extends BaseAdapter {
     }
 
     const env = this._buildEnv();
-    const parser = new GooseStreamParser();
+    const parser = new GooseStreamParser({ redact: (text) => this._redact(text) });
     const captured = { finalText: null };
     let stderr = '';
     let lastActivity = Date.now();
@@ -623,7 +623,7 @@ class GooseAdapter extends BaseAdapter {
     } else if (kind === 'progress') {
       // Intermediate assistant narration is assistant output, not internal
       // reasoning — post it as transient status, never as a "thinking" message.
-      let text = this._safe(event.text || '').trim();
+      let text = this._safe(this._redact(event.text || '')).trim();
       if (text) {
         if (text.length > STATUS_PREVIEW) text = text.slice(0, STATUS_PREVIEW) + '…';
         await this.sendStatus(channel, text);
@@ -637,7 +637,7 @@ class GooseAdapter extends BaseAdapter {
         await this.sendThinking(channel, text);
       }
     } else if (kind === 'notification') {
-      const text = this._safe(event.text || '').trim();
+      const text = this._safe(this._redact(event.text || '')).trim();
       if (text) await this.sendStatus(channel, text.slice(0, STATUS_PREVIEW));
     }
     // tool_result / complete / error → no direct status (error handled by caller)

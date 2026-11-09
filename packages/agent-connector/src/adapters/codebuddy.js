@@ -625,7 +625,7 @@ class CodeBuddyAdapter extends BaseAdapter {
         silences = 0;
         anyOutput = true;
 
-        const ev = interpretCodeBuddyFrame(frame);
+        const ev = interpretCodeBuddyFrame(frame, (text) => this._redact(text));
         if (ev.kind === 'result') {
           result = ev;
           if (ev.sessionId) sessionId = ev.sessionId;

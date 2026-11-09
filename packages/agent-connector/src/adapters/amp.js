@@ -457,7 +457,7 @@ class AmpAdapter extends BaseAdapter {
               hasToolUseSinceText = true;
               lastTurnText = [];
               const toolName = block.name || '';
-              const toolInput = String(JSON.stringify(block.input || {})).slice(0, 200);
+              const toolInput = this._redact(String(JSON.stringify(block.input || {}))).slice(0, 200);
               try { await this.sendStatus(msgChannel, `**Using tool:** \`${toolName}\`\n\`\`\`\n${toolInput}\n\`\`\``); } catch {}
             }
           }

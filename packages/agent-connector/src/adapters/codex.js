@@ -612,7 +612,7 @@ class CodexAdapter extends BaseAdapter {
             try { await this.sendThinking(msgChannel, item.text); } catch {}
           } else if (item.type === 'command_execution') {
             hasToolUseSinceLastText = true;
-            const cmdText = (item.command || '').slice(0, 200);
+            const cmdText = this._redact(item.command || '').slice(0, 200);
             const exitCode = item.exit_code;
             const output = (item.output || '').slice(0, 500);
             let status = `**Running:** \`${cmdText}\``;
@@ -644,7 +644,7 @@ class CodexAdapter extends BaseAdapter {
           // codex retries a failing connection by itself and says nothing
           // else while it does, so the channel just showed "thinking". Say
           // so once per run; the retries come in bursts of five.
-          const status = reconnectNoted ? '' : CodexAdapter._reconnectStatus(errMsg);
+          const status = reconnectNoted ? '' : CodexAdapter._reconnectStatus(this._redact(errMsg));
           if (status) {
             reconnectNoted = true;
             try { await this.sendStatus(msgChannel, status); } catch {}

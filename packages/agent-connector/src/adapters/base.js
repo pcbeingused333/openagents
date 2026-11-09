@@ -1417,7 +1417,9 @@ class BaseAdapter {
       this._schedulePresenceHeartbeat();
       try {
         await this.sendStatus(channel, 'message queued — will process after current task', {
-          queued_message: (msg.content || '').slice(0, 200),
+          // This preview is displayed alongside status text. Redact before
+          // truncating so a credential crossing the cutoff cannot leak a prefix.
+          queued_message: this._redact(msg.content || '').slice(0, 200),
           queue_id: queueId,
         });
       } catch {}

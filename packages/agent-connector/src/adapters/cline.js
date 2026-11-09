@@ -685,7 +685,7 @@ class ClineAdapter extends BaseAdapter {
       };
 
       const handleEvent = async (ev) => {
-        const events = interpretClineEnvelope(ev);
+        const events = interpretClineEnvelope(ev, (text) => this._redact(text));
         for (const e of events) {
           switch (e.kind) {
             case 'reasoning':
